@@ -8,3 +8,5 @@ obj/*
 *.txt
 *.exe
 *.dll
+
+!examples/*

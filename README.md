@@ -11,6 +11,26 @@ real direction and lightness along the imaginary one). Then each point
 in image area will be marked by the corresponding color of its preimage.
 Thus one can realize how exactly the function changes the complex plane.
 
-To be continued...
+The project is in a work stage...
+
+# Examples
+
+## Square
+![sqr](examples/sqr.png)
+
+## Square root
+![sqrt](examples/sqrt.png)
+
+## Sine
+![sin](examples/sin.png)
+
+## Cosine
+![cos](examples/cos.png)
+
+## Exponent
+![exp](examples/exp.png)
+
+## Natural logarithm
+![ln](examples/ln.png)
 
 # **The author is not responsible for the mental health that can be damaged during reading this code**
