@@ -21,5 +21,20 @@ namespace ComplexGraph
 
             return range.Max - range.Min;
         }
+
+        /// <summary>
+        /// Cehcks whether the given range contains the given value.
+        /// </summary>
+        public static bool Contains(this (double Min, double Max) range, double value)
+        {
+            if (range.Max < range.Min)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(range),
+                    "Max cannot be less thatn min");
+            }
+
+            return range.Min <= value && value <= range.Max;
+        }
     }
 }
