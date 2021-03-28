@@ -1,0 +1,10 @@
+.vs/*
+.vscode/*
+
+bin/*
+obj/*
+
+*.png
+*.txt
+*.exe
+*.dll
