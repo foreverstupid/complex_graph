@@ -1,5 +1,7 @@
-﻿using System;
+﻿using System.Reflection.Emit;
+using System;
 using System.Drawing;
+using System.Numerics;
 
 namespace ComplexGraph
 {
@@ -7,26 +9,11 @@ namespace ComplexGraph
     {
         static void Main(string[] args)
         {
-            const int size = 1000;
+            var area = new Area(
+                new Complex(-10, -10),
+                new Complex(10, 10));
 
-            using var bitmap = new Bitmap(size, size);
-            using var graph = Graphics.FromImage(bitmap);
-
-            var brush = new SolidBrush(Color.Green);
-            var pen = new Pen(brush);
-
-            for (int radius = 10; radius < 400; radius += 10)
-            {
-                var center = size / 2;
-                graph.DrawEllipse(
-                    pen,
-                    new Rectangle(
-                        center - radius,
-                        center - radius,
-                        2 * radius,
-                        2 * radius));
-            }
-
+            using var bitmap = area.ToBitmap(1000, 1000);
             bitmap.Save("plot.png");
         }
     }
