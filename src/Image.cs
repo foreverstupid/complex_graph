@@ -1,6 +1,11 @@
+using System;
+using System.Threading;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Numerics;
+using System.Collections.Concurrent;
 
 namespace ComplexGraph
 {
@@ -14,19 +19,15 @@ namespace ComplexGraph
         public const PixelFormat Format = PixelFormat.Format24bppRgb;
 
         private readonly byte[] data;
-
-        public Image(int width, int height)
-        {
-            Width = width;
-            Height = height;
-            this.data = new byte[width * height * Depth];
-        }
+        private readonly double[] zorder;
 
         public Image(BitmapData scan)
         {
             Width = scan.Width;
             Height = scan.Height;
             this.data = new byte[Width * Height * Depth];
+            this.zorder = new double[this.data.Length];
+            Array.Fill(zorder, double.NegativeInfinity);
             Marshal.Copy(scan.Scan0, this.data, 0, this.data.Length);
         }
 
@@ -34,15 +35,52 @@ namespace ComplexGraph
 
         public int Height { get; }
 
-        public void SetPixel(int xPos, int yPos, Color c)
+        /// <summary>
+        /// Sets the color for the given pixel.
+        /// </summary>
+        /// <param name="xPos">X-position of the pixel.</param>
+        /// <param name="yPos">Y-position of the pixel.</param>
+        /// <param name="c">Pixel color.</param>
+        /// <param name="p">Complex point in preimage area that
+        /// produced this pixel. It is used only for z-ordering
+        /// (points of greater real components have more chances
+        /// to be painted).</param>
+        public void SetPixel(int xPos, int yPos, Color c, Complex p)
         {
             int offset = (yPos * Width + xPos) * Depth;
-            data[offset] = c.B;
-            data[offset + 1] = c.G;
-            data[offset + 2] = c.R;
+            if (InterlockedExchangeIfGreater(ref zorder[offset], p.Real, p.Real))
+            {
+                data[offset] = c.B;
+                data[offset + 1] = c.G;
+                data[offset + 2] = c.R;
+            }
         }
 
         public void CopyToBitmapScan(BitmapData scan)
             => Marshal.Copy(data, 0, scan.Scan0, this.data.Length);
+
+        /// <summary>
+        /// Atomic operation that performs replacement <paramref name="location"/>
+        /// with <paramref name="newValue"/> if <paramref name="location"/>
+        /// is less than <paramref name="comparison"/>, returning true.
+        /// Otherwise returns false.
+        /// </summary>
+        private static bool InterlockedExchangeIfGreater(
+            ref double location,
+            double comparison,
+            double newValue)
+        {
+            double initialValue;
+            do
+            {
+                initialValue = location;
+                if (initialValue >= comparison)
+                {
+                    return false;
+                }
+            }
+            while (Interlocked.CompareExchange(ref location, newValue, initialValue) != initialValue);
+            return true;
+        }
     }
 }

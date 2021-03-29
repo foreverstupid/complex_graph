@@ -112,7 +112,7 @@ namespace ComplexGraph
                             hsl.Saturation = MeshSaturation;
                         }
 
-                        plot.SetPixel(pos.X, pos.Y, hsl.AsColor());
+                        plot.SetPixel(pos.X, pos.Y, hsl.AsColor(), point);
                         hsl.Saturation = DefaultSaturation;
                     }
 
