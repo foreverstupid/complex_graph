@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Numerics;
 
 namespace ComplexGraph
@@ -9,6 +10,12 @@ namespace ComplexGraph
     {
         static void Main(string[] args)
         {
+            if (args[0] == "--draw-examples")
+            {
+                DrawExamples();
+                return;
+            }
+
             using var plot = GetPlot();
 
             var area = new Area(
@@ -16,11 +23,33 @@ namespace ComplexGraph
                 new Complex(Math.PI, Math.PI));
 
             var identity = Function.Identity(area);
-            var func = identity.RightCompose("exp(#)", Complex.Exp);
+            var func = identity.RightCompose("sqrt(#)", Complex.Sqrt);
 
             Draw(identity, plot.Canvas, plot.PreimageMask);
             Draw(func, plot.Canvas, plot.ImageMask, 8000, 8000);
             plot.Canvas.Save("plot.png");
+        }
+
+        private static void DrawExamples()
+        {
+            var area = new Area(new Complex(-1, -1), new Complex(1, 1));
+            var identity = Function.Identity(area);
+
+            var funcs = new[]
+            {
+                ("exp", identity.RightCompose("exp(#)", Complex.Exp)),
+                ("ln", identity.RightCompose("ln #", Complex.Log)),
+                ("sin", identity.RightCompose("sin #", Complex.Sin)),
+                ("sqrt", identity.RightCompose("sqrt(#)", Complex.Sqrt)),
+            };
+
+            foreach (var (fileName, func) in funcs)
+            {
+                using var plot = GetPlot();
+                Draw(identity, plot.Canvas, plot.PreimageMask);
+                Draw(func, plot.Canvas, plot.ImageMask, 8000, 8000);
+                plot.Canvas.Save(Path.Combine("examples", $"{fileName}.png"));
+            }
         }
 
         private static void Draw(
