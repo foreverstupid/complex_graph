@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Numerics;
 
 namespace ComplexGraph
@@ -8,58 +9,61 @@ namespace ComplexGraph
     {
         static void Main(string[] args)
         {
-            var preimage = new Area(
-                new Complex(-2, -2),
-                new Complex(2, 2));
-
-            var image = preimage.Apply(c => Complex.Sqrt(c), "sqrt");
-
             using var plot = GetPlot();
-            preimage.DrawTo(plot.Canvas, plot.PreimageMask);
-            image.DrawTo(plot.Canvas, plot.ImageMask, 4000, 4000);
 
+            var area = new Area(
+                new Complex(-Math.PI, -Math.PI),
+                new Complex(Math.PI, Math.PI));
+
+            var identity = Function.Identity(area);
+            var func = identity.RightCompose("exp(#)".ToName(), Complex.Exp);
+
+            Draw(identity, plot.Canvas, plot.PreimageMask);
+            Draw(func, plot.Canvas, plot.ImageMask, 8000, 8000);
             plot.Canvas.Save("plot.png");
+        }
+
+        private static void Draw(
+            Function func,
+            Bitmap plot,
+            Rectangle mask,
+            int? xCount = null,
+            int? yCount = null)
+        {
+            var scan = plot.LockBits(mask, ImageLockMode.ReadWrite, Image.Format);
+            var holder = new Image(scan);
+
+            func.DrawTo(holder, xCount, yCount);
+            holder.CopyToBitmapScan(scan);
+            plot.UnlockBits(scan);
+
+            plot.DrawCoordinateAxes(mask, func.Preimage);
+            plot.DrawFuncName(mask, func.Name.Value);
         }
 
         private static Plot GetPlot()
         {
             int margin = 10;
             int spaceBetween = 100;
-            int areaSize = 500;
+            int areaWidth = 500;
+            int areaHeight = 500;
             var background = new SolidBrush(Color.LightGray);
 
             var bitmap = new Bitmap(
-                4 * margin + spaceBetween + 2 * areaSize,
-                2 * margin + areaSize);
+                4 * margin + spaceBetween + 2 * areaWidth,
+                2 * margin + areaHeight);
 
-            var preimageMask = new Rectangle(margin, margin, areaSize, areaSize);
+            var preimageMask = new Rectangle(margin, margin, areaWidth, areaHeight);
             var imageMask = new Rectangle(
-                3 * margin + spaceBetween + areaSize,
+                3 * margin + spaceBetween + areaWidth,
                 margin,
-                areaSize,
-                areaSize);
+                areaWidth,
+                areaHeight);
 
             using var graph = Graphics.FromImage(bitmap);
             graph.FillRectangle(background, 0, 0, bitmap.Width, bitmap.Height);
 
-            return new Plot()
-            {
-                Canvas = bitmap,
-                PreimageMask = preimageMask,
-                ImageMask = imageMask,
-            };
-        }
-
-        private class Plot : IDisposable
-        {
-            public Bitmap Canvas { get; init; }
-
-            public Rectangle PreimageMask { get; init; }
-
-            public Rectangle ImageMask { get; init; }
-
-            public void Dispose()
-                => Canvas.Dispose();
+            return new Plot(bitmap, preimageMask, imageMask);
         }
     }
 }

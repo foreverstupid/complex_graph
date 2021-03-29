@@ -1,40 +1,62 @@
 using System;
+using System.Numerics;
 
 namespace ComplexGraph
 {
     /// <summary>
     /// Help extension methods.
     /// </summary>
-    public static class Helpers
+    internal static class Helpers
     {
         /// <summary>
-        /// Returns the length of the double-valued range.
+        /// Crops the given number if it is out of the range.
         /// </summary>
-        public static double Length(this (double Min, double Max) range)
+        public static bool Contains(this Range range, int n)
         {
-            if (range.Max < range.Min)
-            {
-                throw new ArgumentOutOfRangeException(
-                    nameof(range),
-                    "Max cannot be less thatn min");
-            }
-
-            return range.Max - range.Min;
+            return
+                range.Start.Value <= n &&
+                n < range.End.Value;
         }
 
         /// <summary>
-        /// Cehcks whether the given range contains the given value.
+        /// Cehcks whether the given complex number is in a rectangle of the
+        /// complex plane.
         /// </summary>
-        public static bool Contains(this (double Min, double Max) range, double value)
+        /// <param name="point">Testing point.</param>
+        /// <param name="leftBottom">Left bottom corner of a rectangle.</param>
+        /// <param name="rightTop">Right top corner of a rectangle.</param>
+        /// <param name="margin"Border margin as a ratio of rectangle sizes.</param>
+        public static bool InRectangle(
+            this Complex point,
+            Complex leftBottom,
+            Complex rightTop,
+            double margin = 0.0)
         {
-            if (range.Max < range.Min)
+            double rMargin = margin * (rightTop.Real - leftBottom.Real);
+            double iMargin = margin * (rightTop.Imaginary - leftBottom.Imaginary);
+
+            if (rMargin < -1e-12 || iMargin < -1e-12)
             {
-                throw new ArgumentOutOfRangeException(
-                    nameof(range),
-                    "Max cannot be less thatn min");
+                throw new ArgumentException("Defined parameters are incorrect");
             }
 
-            return range.Min <= value && value <= range.Max;
+            if (leftBottom.Real > rightTop.Real - margin ||
+                leftBottom.Imaginary > rightTop.Imaginary - margin)
+            {
+                throw new ArgumentException("Defined rectangle is incorrect");
+            }
+
+            return
+                leftBottom.Real + rMargin <= point.Real &&
+                point.Real <= rightTop.Real - rMargin &&
+                leftBottom.Imaginary + iMargin <= point.Imaginary &&
+                point.Imaginary <= rightTop.Imaginary - iMargin;
         }
+
+        /// <summary>
+        /// Converts the given pattern to the function name.
+        /// </summary>
+        public static FunctionName ToName(this string pattern)
+            => new FunctionName(pattern);
     }
 }
