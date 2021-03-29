@@ -15,17 +15,11 @@ The project is in a work stage...
 
 # Examples
 
-## Square
-![sqr](examples/sqr.png)
-
 ## Square root
 ![sqrt](examples/sqrt.png)
 
 ## Sine
 ![sin](examples/sin.png)
-
-## Cosine
-![cos](examples/cos.png)
 
 ## Exponent
 ![exp](examples/exp.png)
