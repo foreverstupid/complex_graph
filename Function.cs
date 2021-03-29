@@ -11,6 +11,14 @@ namespace ComplexGraph
         private readonly Func<Complex, Complex> action;
 
         public Function(
+            string namePattern,
+            Func<Complex, Complex> func,
+            Area preimage)
+            : this(new FunctionName(namePattern), func, preimage)
+        {
+        }
+
+        public Function(
             FunctionName name,
             Func<Complex, Complex> func,
             Area preimage)
@@ -47,12 +55,32 @@ namespace ComplexGraph
         /// the given one is g(), then it returns g(f).
         /// </summary>
         public Function RightCompose(
+            string namePattern,
+            Func<Complex, Complex> func)
+            => this.RightCompose(new FunctionName(namePattern), func);
+
+        /// <summary>
+        /// Gets a new function that is a right compositon of the given and
+        /// the current one. E.g. if the current function is f() and
+        /// the given one is g(), then it returns g(f).
+        /// </summary>
+        public Function RightCompose(
             FunctionName name,
             Func<Complex, Complex> func)
             => new Function(
                 name.Compose(this.Name),
                 c => func(this.action(c)),
                 this.Preimage);
+
+         /// <summary>
+        /// Gets a new function that is a left compositon of the given and
+        /// the current one. E.g. if the current function is f() and
+        /// the given one is g(), then it returns f(g).
+        /// </summary>
+        public Function LeftCompose(
+            string namePattern,
+            Func<Complex, Complex> func)
+            => this.LeftCompose(new FunctionName(namePattern), func);
 
         /// <summary>
         /// Gets a new function that is a left compositon of the given and

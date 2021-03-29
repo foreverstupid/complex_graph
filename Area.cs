@@ -32,5 +32,32 @@ namespace ComplexGraph
 
         public double Height =>
             RightTop.Imaginary - LeftBottom.Imaginary;
+
+        /// <summary>
+        /// Cehcks whether the area contains the given point.
+        /// </summary>
+        /// <param name="point">Testing point.</param>
+        /// <param name="margin">Border margin as a ratio of area sizes.
+        /// The point should be inside the area and far from the boundary
+        /// by this margin.</param>
+        public bool Contains(Complex point, double margin = 0.0)
+        {
+            if (margin < -1e-12 || margin >= 0.5)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(margin),
+                    margin,
+                    "Should be in range [0; 0.5)");
+            }
+
+            double rMargin = margin * (RightTop.Real - LeftBottom.Real);
+            double iMargin = margin * (RightTop.Imaginary - LeftBottom.Imaginary);
+
+            return
+                LeftBottom.Real + rMargin <= point.Real &&
+                point.Real <= RightTop.Real - rMargin &&
+                LeftBottom.Imaginary + iMargin <= point.Imaginary &&
+                point.Imaginary <= RightTop.Imaginary - iMargin;
+        }
     }
 }

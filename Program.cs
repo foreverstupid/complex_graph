@@ -16,7 +16,7 @@ namespace ComplexGraph
                 new Complex(Math.PI, Math.PI));
 
             var identity = Function.Identity(area);
-            var func = identity.RightCompose("exp(#)".ToName(), Complex.Exp);
+            var func = identity.RightCompose("exp(#)", Complex.Exp);
 
             Draw(identity, plot.Canvas, plot.PreimageMask);
             Draw(func, plot.Canvas, plot.ImageMask, 8000, 8000);
@@ -43,10 +43,10 @@ namespace ComplexGraph
 
         private static Plot GetPlot()
         {
-            int margin = 10;
-            int spaceBetween = 100;
-            int areaWidth = 500;
-            int areaHeight = 500;
+            int margin = 20;
+            int spaceBetween = 200;
+            int areaWidth = 1000;
+            int areaHeight = 1000;
             var background = new SolidBrush(Color.LightGray);
 
             var bitmap = new Bitmap(

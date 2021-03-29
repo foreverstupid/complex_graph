@@ -1,3 +1,4 @@
+using System.Security.AccessControl;
 using System;
 using System.Drawing;
 using System.Numerics;
@@ -7,7 +8,35 @@ namespace ComplexGraph
 {
     public static class Drawer
     {
+        /// <summary>
+        /// Saturation of the color of points on the mesh.
+        /// </summary>
+        private const double MeshSaturation = 1.0;
+
+        /// <summary>
+        /// Saturation of the color of points out of the mesh.
+        /// </summary>
+        private const double DefaultSaturation = 0.5;
+
+        /// <summary>
+        /// The count of mesh step along the axis (similar for Re and Im).
+        /// </summary>
+        private const int MeshCount = 10;
+
+        /// <summary>
+        /// The mesh lines relative thickness (similar for Re and Im). 
+        /// </summary>
+        private const double MeshThick = 4e-3;
+
+        /// <summary>
+        /// Range of using hue (changes along Re).
+        /// </summary>
         private static readonly Segment HueRange = new(0.0, 0.95);
+
+        /// <summary>
+        /// Range of using lightness (changes along Im).
+        /// </summary>
+        /// <returns></returns>
         private static readonly Segment LightnessRange = new(0.05, 0.9);
 
         /// <summary>
@@ -26,40 +55,60 @@ namespace ComplexGraph
             int realGrid = realGridCount ?? plot.Width;
             int imaginaryGrid = imaginaryGridCount ?? plot.Height;
 
+            // set steps for point color changes
             double realStep = func.Preimage.Width / (realGrid + 1);
             double imaginaryStep = func.Preimage.Height / (imaginaryGrid + 1);
+            double huePerStep = HueRange.Length() / (realGrid + 1);
+            double lightPerStep = LightnessRange.Length() / (imaginaryGrid + 1);
 
-            double huePerPixel = HueRange.Length() / (realGrid + 1);
-            double lightPerPixel = LightnessRange.Length() / (imaginaryGrid + 1);
+            // configure the mesh
+            int meshStep = realGrid / (MeshCount + 1);
+            int meshThick = (int)(realGrid * MeshThick);
 
             Parallel.For(0, imaginaryGrid, (j, ctxt) =>
             {
+                int tmp = j % meshStep;
+                bool isMesh =
+                    (meshStep - meshThick) <= tmp &&
+                    tmp < meshStep;
+
                 var hsl = new HSL
                 {
                     Hue = HueRange.Min,
-                    Lightness = LightnessRange.Min + j * lightPerPixel,
+                    Lightness = LightnessRange.Min + j * lightPerStep,
                 };
 
                 var point = new Complex(
                     func.Preimage.LeftBottom.Real,
                     func.Preimage.LeftBottom.Imaginary + j * imaginaryStep);
 
-                for (int _ = 0; _ < realGrid; _++)
+                for (int i = 0; i < realGrid; i++)
                 {
                     var value = func[point];
-                    bool insideArea = TryGetPlotPosition(
+                    bool isInsideArea = TryGetPlotPosition(
                         value,
                         func.Preimage,
                         plot.Width,
                         plot.Height,
                         out var pos);
 
-                    if (insideArea)
+                    if (isInsideArea)
                     {
+                        int hlp = i % meshStep;
+                        bool drawMesh =
+                            isMesh ||
+                            meshStep - meshThick <= hlp && hlp < meshStep;
+
+                        if (drawMesh)
+                        {
+                            hsl.Saturation = MeshSaturation;
+                        }
+
                         plot.SetPixel(pos.X, pos.Y, hsl.AsColor());
+                        hsl.Saturation = DefaultSaturation;
                     }
 
-                    hsl.Hue += huePerPixel;
+                    hsl.Hue += huePerStep;
                     point = new Complex(point.Real + realStep, point.Imaginary);
                 }
             });
@@ -82,7 +131,7 @@ namespace ComplexGraph
             var center = 0.5 * (area.LeftBottom + area.RightTop);
             var origin = coordinateOrigin ?? center;
             if (coordinateOrigin.HasValue &&
-                !coordinateOrigin.Value.InRectangle(area.LeftBottom, area.RightTop, 0.1))
+                !area.Contains(coordinateOrigin.Value, 0.1))
             {
                 throw new ArgumentException("Defined coordinate origin is invalid");
             }
@@ -172,7 +221,9 @@ namespace ComplexGraph
                 height);
 
             pos = (x, height - 1 - y);
-            return (0..width).Contains(x) && (0..height).Contains(y);
+            return
+                0 <= x && x < width &&
+                0 <= y && y < height;
         }
     }
 }
