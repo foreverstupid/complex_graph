@@ -27,4 +27,7 @@ The project is in a work stage...
 ## Natural logarithm
 ![ln](examples/ln.png)
 
+## Powers
+![pows](examples/pows.gif)
+
 # **The author is not responsible for the mental health that can be damaged during reading this code**

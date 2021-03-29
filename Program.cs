@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.Linq;
+using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -10,10 +11,19 @@ namespace ComplexGraph
     {
         static void Main(string[] args)
         {
-            if (args.Length > 0 && args[0] == "--draw-examples")
+            if (args.Length > 0)
             {
-                DrawExamples();
-                return;
+                if (args[0] == "--draw-examples")
+                {
+                    DrawExamples();
+                    return;
+                }
+
+                if (args[0] == "--draw-pows")
+                {
+                    DrawPows();
+                    return;
+                }
             }
 
             using var plot = GetPlot();
@@ -49,6 +59,36 @@ namespace ComplexGraph
                 Draw(identity, plot.Canvas, plot.PreimageMask);
                 Draw(func, plot.Canvas, plot.ImageMask, 8000, 8000);
                 plot.Canvas.Save(Path.Combine("examples", $"{fileName}.png"));
+            }
+        }
+
+        private static void DrawPows()
+        {
+            var area = new Area(
+                new Complex(-Math.PI, -Math.PI),
+                new Complex(Math.PI, Math.PI));
+
+            var identity = Function.Identity(area);
+
+            var pows = Enumerable.Range(1, 100)
+                .Reverse()
+                .Select(i => 0.01 * i);
+
+            string powsDir = "pows";
+            if (Directory.Exists(powsDir))
+            {
+                Directory.Delete(powsDir, true);
+            }
+
+            Directory.CreateDirectory(powsDir);
+            foreach (var (p, i) in pows.Select((t, i) => (t, i)))
+            {
+                Console.WriteLine($"Drawing power {p}...");
+                var func = identity.RightCompose($"#^{p:0.##}", c => Complex.Pow(c, p));
+                using var plot = GetPlot();
+                Draw(identity, plot.Canvas, plot.PreimageMask);
+                Draw(func, plot.Canvas, plot.ImageMask, 4000, 4000);
+                plot.Canvas.Save(Path.Combine(powsDir, $"pow{i}.png"));
             }
         }
 
