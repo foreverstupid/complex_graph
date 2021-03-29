@@ -33,10 +33,10 @@ namespace ComplexGraph
         /// <summary>
         /// The count of mesh step along the axis (similar for Re and Im).
         /// </summary>
-        private const int MeshCount = 10;
+        private const int MeshCount = 11;
 
         /// <summary>
-        /// The mesh lines relative thickness (similar for Re and Im). 
+        /// The mesh lines relative thickness (similar for Re and Im).
         /// </summary>
         private const double MeshThick = 4e-3;
 
@@ -79,11 +79,7 @@ namespace ComplexGraph
 
             Parallel.For(0, imaginaryGrid, (j, ctxt) =>
             {
-                int tmp = j % meshStep;
-                bool isMesh =
-                    (meshStep - meshThick) <= tmp &&
-                    tmp < meshStep;
-
+                bool isImMesh = IsOnMesh(j, meshStep, meshThick);
                 var hsl = new HSL
                 {
                     Hue = HueRange.Min,
@@ -108,8 +104,8 @@ namespace ComplexGraph
                     {
                         int hlp = i % meshStep;
                         bool drawMesh =
-                            isMesh ||
-                            meshStep - meshThick <= hlp && hlp < meshStep;
+                            isImMesh ||
+                            IsOnMesh(i, meshStep, meshThick);
 
                         if (drawMesh)
                         {
@@ -256,6 +252,17 @@ namespace ComplexGraph
             return
                 0 <= x && x < width &&
                 0 <= y && y < height;
+        }
+
+        private static bool IsOnMesh(
+            int idx,
+            int meshStep,
+            int meshThick)
+        {
+            var tmp = idx % meshStep;
+            return
+                tmp > meshStep / 2 &&
+                tmp <= meshStep / 2 + meshThick;
         }
     }
 }

@@ -1,6 +1,5 @@
 using System.Runtime.InteropServices;
 using System.Drawing;
-using System;
 using System.Drawing.Imaging;
 
 namespace ComplexGraph
@@ -42,14 +41,6 @@ namespace ComplexGraph
             data[offset + 1] = c.G;
             data[offset + 2] = c.R;
         }
-
-        public Bitmap AsBitmap()
-            => new Bitmap(
-                Width,
-                Height,
-                Depth,
-                Format,
-                Marshal.UnsafeAddrOfPinnedArrayElement(this.data, 0));
 
         public void CopyToBitmapScan(BitmapData scan)
             => Marshal.Copy(data, 0, scan.Scan0, this.data.Length);

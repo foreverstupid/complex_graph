@@ -10,7 +10,7 @@ namespace ComplexGraph
     {
         static void Main(string[] args)
         {
-            if (args[0] == "--draw-examples")
+            if (args.Length > 0 && args[0] == "--draw-examples")
             {
                 DrawExamples();
                 return;
