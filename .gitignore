@@ -1,13 +1,13 @@
-.vs/*
-.vscode/*
+**/.vs/*
+**/.vscode/*
 
-bin/*
-obj/*
+**/bin/*
+**/obj/*
 
-*.png
-*.txt
-*.exe
-*.dll
-*.gif
+**/*.png
+**/*.txt
+**/*.exe
+**/*.dll
+**/*.gif
 
 !examples/*
