@@ -1,3 +1,5 @@
+using System.ComponentModel;
+using System.Reflection.Emit;
 using System.Security.AccessControl;
 using System;
 using System.Drawing;
@@ -8,6 +10,16 @@ namespace ComplexGraph
 {
     public static class Drawer
     {
+        /// <summary>
+        /// Coordinate line thickness relative to the plot area size.
+        /// </summary>
+        private const float CoordLineThick = 0.005f;
+
+        /// <summary>
+        /// Label size relative to the plot area size.
+        /// </summary>
+        private const float FontSize = 5 * CoordLineThick;
+
         /// <summary>
         /// Saturation of the color of points on the mesh.
         /// </summary>
@@ -146,30 +158,44 @@ namespace ComplexGraph
             }
 
             var (xPos, yPos) = pos;
-            using var brush = new SolidBrush(Color.Black);
-            using var pen = new Pen(brush, 3.0f);
-            using var graph = Graphics.FromImage(plot);
+            var size = Math.Max(mask.Width, mask.Height);
+            var lineThick = size * CoordLineThick;
+            var fontSize = size * FontSize;
 
-            // imaginary axis
-            graph.DrawLine(
-                pen,
-                xPos + mask.Left, mask.Top,
-                xPos + mask.Left, mask.Bottom);
+            using var brush = new SolidBrush(Color.Black);
+            using var pen = new Pen(brush, lineThick);
+            using var graphics = Graphics.FromImage(plot);
 
             // real axis
-            graph.DrawLine(
+            graphics.DrawArrow(
                 pen,
                 mask.Left, yPos + mask.Top,
-                mask.Right, yPos + mask.Top);
+                mask.Right, yPos + mask.Top,
+                fontSize);
 
-            using var font = new Font(new FontFamily("Times New Roman"), 12);
-            graph.DrawString(
-                $"Re = {origin.Real}", font, brush,
-                xPos + mask.Left + 10, mask.Top + 10);
+            // imaginary axis
+            graphics.DrawArrow(
+                pen,
+                xPos + mask.Left, mask.Bottom,
+                xPos + mask.Left, mask.Top,
+                fontSize);
 
-            graph.DrawString(
-                $"Im = {origin.Imaginary}", font, brush,
-                mask.Right - 50, yPos + 10);
+            using var font = new Font(new FontFamily("Times New Roman"), fontSize);
+            var reLabel = $"Im = {origin.Imaginary}";
+            var imLabel = $"Re = {origin.Real}";
+
+            var reLabelSize = graphics.MeasureString(reLabel, font);
+            var imLabelSize = graphics.MeasureString(imLabel, font);
+
+            graphics.DrawString(
+                reLabel, font, brush,
+                mask.Right - reLabelSize.Width,
+                yPos + reLabelSize.Height);
+
+            graphics.DrawString(
+                imLabel, font, brush,
+                xPos + mask.Left + fontSize,
+                mask.Top);
         }
 
         /// <summary>
@@ -183,10 +209,16 @@ namespace ComplexGraph
             Rectangle mask,
             string name)
         {
+            var fontSize = FontSize * Math.Max(mask.Width, mask.Height);
+
             using var brush = new SolidBrush(Color.Black);
             using var background = new SolidBrush(Color.White);
             using var margin = new Pen(new SolidBrush(Color.Black), 4);
-            using var font = new Font(new FontFamily("Times New Roman"), 12, FontStyle.Italic);
+            using var font = new Font(
+                new FontFamily("Times New Roman"),
+                fontSize,
+                FontStyle.Italic);
+
             using var graphics = Graphics.FromImage(plot);
 
             var textSize = graphics.MeasureString(name, font);
