@@ -80,12 +80,14 @@ namespace ComplexGraph
             double lightPerStep = LightnessRange.Length() / (imaginaryGrid + 1);
 
             // configure the mesh
-            int meshStep = realGrid / (MeshCount + 1);
-            int meshThick = (int)(realGrid * MeshThick);
+            double meshStepX = func.Preimage.Width / (MeshCount + 1);
+            double meshStepY = func.Preimage.Height / (MeshCount + 1);
+            double meshThick =
+                Math.Max(func.Preimage.Width, func.Preimage.Height) *
+                MeshThick;
 
             Parallel.For(0, imaginaryGrid, (j, ctxt) =>
             {
-                bool isImMesh = IsOnMesh(j, meshStep, meshThick);
                 var hsl = new HSL
                 {
                     Hue = HueRange.Min,
@@ -96,6 +98,7 @@ namespace ComplexGraph
                     func.Preimage.LeftBottom.Real,
                     func.Preimage.LeftBottom.Imaginary + j * imaginaryStep);
 
+                bool isImMesh = IsOnMesh(point.Imaginary, meshStepY, meshThick);
                 for (int i = 0; i < realGrid; i++)
                 {
                     var value = func[point];
@@ -108,10 +111,9 @@ namespace ComplexGraph
 
                     if (isInsideArea)
                     {
-                        int hlp = i % meshStep;
                         bool drawMesh =
                             isImMesh ||
-                            IsOnMesh(i, meshStep, meshThick);
+                            IsOnMesh(point.Real, meshStepX, meshThick);
 
                         if (drawMesh)
                         {
@@ -338,11 +340,16 @@ namespace ComplexGraph
         }
 
         private static bool IsOnMesh(
-            int idx,
-            int meshStep,
-            int meshThick)
+            double point,
+            double meshStep,
+            double meshThick)
         {
-            var tmp = idx % meshStep;
+            var tmp = point % meshStep;
+            if (tmp < 0)
+            {
+                tmp += meshStep;
+            }
+
             return
                 tmp > meshStep / 2 &&
                 tmp <= meshStep / 2 + meshThick;
