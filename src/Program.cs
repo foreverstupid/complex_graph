@@ -32,20 +32,23 @@ namespace ComplexGraph
 
             using var plot = GetPlot();
 
+            double size = 1.0;
+            double tickStep = 0.2;
             var area = new Area(
-                new Complex(-1, -1),
-                new Complex(1, 1));
+                new Complex(-size, -size),
+                new Complex(size, size));
 
             var identity = Function.Identity(area);
             var func = identity.RightCompose("#^2", c => c * c);
 
-            Draw(identity, plot.Canvas, plot.PreimageMask);
-            Draw(func, plot.Canvas, plot.ImageMask, 10000, 10000);
+            Draw(identity, plot.Canvas, plot.PreimageMask, tickStep);
+            Draw(func, plot.Canvas, plot.ImageMask, tickStep, 8000, 8000);
             plot.Canvas.Save("plot.png");
         }
 
         private static void DrawExamples()
         {
+            double tickStep = 0.2;
             var area = new Area(new Complex(-1, -1), new Complex(1, 1));
             var identity = Function.Identity(area);
 
@@ -60,14 +63,15 @@ namespace ComplexGraph
             foreach (var (fileName, func) in funcs)
             {
                 using var plot = GetPlot();
-                Draw(identity, plot.Canvas, plot.PreimageMask);
-                Draw(func, plot.Canvas, plot.ImageMask, 8000, 8000);
+                Draw(identity, plot.Canvas, plot.PreimageMask, tickStep);
+                Draw(func, plot.Canvas, plot.ImageMask, tickStep, 8000, 8000);
                 plot.Canvas.Save(Path.Combine("examples", $"{fileName}.png"));
             }
         }
 
         private static void DrawPows(double start, double step, int count)
         {
+            double tickStep = 0.5;
             var area = new Area(
                 new Complex(-Math.PI, -Math.PI),
                 new Complex(Math.PI, Math.PI));
@@ -89,8 +93,8 @@ namespace ComplexGraph
                 Console.WriteLine($"Drawing power [{i}]: {p}...");
                 var func = identity.RightCompose($"#^{p:0.##}", c => Complex.Pow(c, p));
                 using var plot = GetPlot();
-                Draw(identity, plot.Canvas, plot.PreimageMask);
-                Draw(func, plot.Canvas, plot.ImageMask, 4000, 4000);
+                Draw(identity, plot.Canvas, plot.PreimageMask, tickStep);
+                Draw(func, plot.Canvas, plot.ImageMask, tickStep, 4000, 4000);
                 plot.Canvas.Save(Path.Combine(powsDir, $"pow{i}.png"));
             }
         }
@@ -99,6 +103,7 @@ namespace ComplexGraph
             Function func,
             Bitmap plot,
             Rectangle mask,
+            double tickStep,
             int? xCount = null,
             int? yCount = null)
         {
@@ -109,7 +114,7 @@ namespace ComplexGraph
             holder.CopyToBitmapScan(scan);
             plot.UnlockBits(scan);
 
-            plot.DrawCoordinateAxes(mask, func.Preimage);
+            plot.DrawCoordinateAxes(mask, func.Preimage, tickStep, tickStep);
             plot.DrawFuncName(mask, func.Name.Value);
         }
 

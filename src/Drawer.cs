@@ -5,6 +5,7 @@ using System;
 using System.Drawing;
 using System.Numerics;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace ComplexGraph
 {
@@ -13,12 +14,17 @@ namespace ComplexGraph
         /// <summary>
         /// Coordinate line thickness relative to the plot area size.
         /// </summary>
-        private const float CoordLineThick = 0.005f;
+        private const float CoordLineThick = 0.004f;
+
+        /// <summary>
+        /// Coordinate axes tick size relative to the plot area.
+        /// </summary>
+        private const float TickSize = 5 * CoordLineThick;
 
         /// <summary>
         /// Label size relative to the plot area size.
         /// </summary>
-        private const float FontSize = 5 * CoordLineThick;
+        private const float FontSize = 6 * CoordLineThick;
 
         /// <summary>
         /// Saturation of the color of points on the mesh.
@@ -134,6 +140,8 @@ namespace ComplexGraph
             this Bitmap plot,
             Rectangle mask,
             Area area,
+            double xStep = 0.5,
+            double yStep = 0.5,
             Complex? coordinateOrigin = null)
         {
             var center = 0.5 * (area.LeftBottom + area.RightTop);
@@ -177,8 +185,13 @@ namespace ComplexGraph
                 fontSize);
 
             using var font = new Font(new FontFamily("Times New Roman"), fontSize);
-            var reLabel = $"Im = {origin.Imaginary}";
-            var imLabel = $"Re = {origin.Real}";
+            int tickSize = (int)(size * TickSize);
+
+            DrawReTicks();
+            DrawImTicks();
+
+            var reLabel = "Re z";
+            var imLabel = "Im z";
 
             var reLabelSize = graphics.MeasureString(reLabel, font);
             var imLabelSize = graphics.MeasureString(imLabel, font);
@@ -190,8 +203,78 @@ namespace ComplexGraph
 
             graphics.DrawString(
                 imLabel, font, brush,
-                xPos + mask.Left + fontSize,
+                xPos + mask.Left - imLabelSize.Width - fontSize,
                 mask.Top);
+
+            void DrawReTicks()
+            {
+                var ticks = new List<double>();
+                var t = origin.Real + xStep;
+                while (t < area.RightTop.Real)
+                {
+                    ticks.Add(t);
+                    t += xStep;
+                }
+
+                t = origin.Real - xStep;
+                while (t > area.LeftBottom.Real)
+                {
+                    ticks.Add(t);
+                    t -= xStep;
+                }
+
+                foreach (var tick in ticks)
+                {
+                    var p = new Complex(tick, origin.Imaginary);
+                    TryGetPlotPosition(p, area, mask.Width, mask.Height, out var tickPos);
+                    graphics.DrawLine(
+                        pen,
+                        mask.Left + tickPos.X, mask.Top + tickPos.Y,
+                        mask.Left + tickPos.X, mask.Top + tickPos.Y - tickSize);
+
+                    var tLabel = $"{tick:0.##}";
+                    var tSize = graphics.MeasureString(tLabel, font);
+                    graphics.DrawString(
+                        tLabel, font, brush,
+                        mask.Left + tickPos.X - tSize.Width / 2,
+                        mask.Top + tickPos.Y - tickSize - tSize.Height);
+                }
+            }
+
+            void DrawImTicks()
+            {
+                var ticks = new List<double>();
+                var t = origin.Imaginary + yStep;
+                while (t < area.RightTop.Imaginary)
+                {
+                    ticks.Add(t);
+                    t += yStep;
+                }
+
+                t = origin.Imaginary - yStep;
+                while (t > area.LeftBottom.Imaginary)
+                {
+                    ticks.Add(t);
+                    t -= yStep;
+                }
+
+                foreach (var tick in ticks)
+                {
+                    var p = new Complex(origin.Real, tick);
+                    TryGetPlotPosition(p, area, mask.Width, mask.Height, out var tickPos);
+                    graphics.DrawLine(
+                        pen,
+                        mask.Left + tickPos.X, mask.Top + tickPos.Y,
+                        mask.Left + tickPos.X + tickSize, mask.Top + tickPos.Y);
+
+                    var tLabel = $"{tick:0.##}";
+                    var tSize = graphics.MeasureString(tLabel, font);
+                    graphics.DrawString(
+                        tLabel, font, brush,
+                        mask.Left + tickPos.X + tickSize,
+                        mask.Top + tickPos.Y - tSize.Height / 2);
+                }
+            }
         }
 
         /// <summary>
