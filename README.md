@@ -21,6 +21,12 @@ The project is in a work stage...
 ## Sine
 ![sin](examples/sin.png)
 
+## Cosine
+![cos](examples/cos.png)
+
+## Tangent
+![tan](examples/tan.png)
+
 ## Exponent
 ![exp](examples/exp.png)
 

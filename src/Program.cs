@@ -42,8 +42,8 @@ namespace ComplexGraph
 
             using var plot = GetPlot();
 
-            double size = Math.PI;
-            double tickStep = 1;
+            double size = 6;
+            double tickStep = 2;
             var area = new Area(
                 new Complex(-size, -size),
                 new Complex(size, size));
@@ -58,16 +58,19 @@ namespace ComplexGraph
 
         private static void DrawExamples()
         {
-            double tickStep = 0.2;
-            var area = new Area(new Complex(-1, -1), new Complex(1, 1));
+            double tickStep = 1;
+            double d = Math.PI;
+            var area = new Area(new Complex(-d, -d), new Complex(d, d));
             var identity = Function.Identity(area);
 
             var funcs = new[]
             {
+                ("sqrt", identity.RightCompose("sqrt(#)", Complex.Sqrt)),
                 ("exp", identity.RightCompose("exp(#)", Complex.Exp)),
                 ("ln", identity.RightCompose("ln #", Complex.Log)),
                 ("sin", identity.RightCompose("sin #", Complex.Sin)),
-                ("sqrt", identity.RightCompose("sqrt(#)", Complex.Sqrt)),
+                ("cos", identity.RightCompose("cos #", Complex.Cos)),
+                ("tan", identity.RightCompose("tan #", Complex.Tan)),
             };
 
             var exDir = Path.Combine("..", "examples");
@@ -75,7 +78,7 @@ namespace ComplexGraph
             {
                 using var plot = GetPlot();
                 Draw(identity, plot.Canvas, plot.PreimageMask, tickStep);
-                Draw(func, plot.Canvas, plot.ImageMask, tickStep, 8000, 8000);
+                Draw(func, plot.Canvas, plot.ImageMask, tickStep, 16000, 16000);
                 plot.Canvas.Save(Path.Combine(exDir, $"{fileName}.png"));
             }
         }
