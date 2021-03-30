@@ -30,4 +30,7 @@ The project is in a work stage...
 ## Powers
 ![pows](examples/pows.gif)
 
+## Exponent in different areas
+![exps](examples/exps.gif)
+
 # **The author is not responsible for the mental health that can be damaged during reading this code**
