@@ -60,12 +60,13 @@ namespace ComplexGraph
                 ("sqrt", identity.RightCompose("sqrt(#)", Complex.Sqrt)),
             };
 
+            var exDir = Path.Combine("..", "examples");
             foreach (var (fileName, func) in funcs)
             {
                 using var plot = GetPlot();
                 Draw(identity, plot.Canvas, plot.PreimageMask, tickStep);
                 Draw(func, plot.Canvas, plot.ImageMask, tickStep, 8000, 8000);
-                plot.Canvas.Save(Path.Combine("examples", $"{fileName}.png"));
+                plot.Canvas.Save(Path.Combine(exDir, $"{fileName}.png"));
             }
         }
 
