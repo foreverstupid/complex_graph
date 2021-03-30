@@ -43,12 +43,12 @@ namespace ComplexGraph
         /// <param name="c">Pixel color.</param>
         /// <param name="p">Complex point in preimage area that
         /// produced this pixel. It is used only for z-ordering
-        /// (points of greater real components have more chances
+        /// (points of greater magnitude have more chances
         /// to be painted).</param>
         public void SetPixel(int xPos, int yPos, Color c, Complex p)
         {
             int offset = (yPos * Width + xPos) * Depth;
-            if (InterlockedExchangeIfGreater(ref zorder[offset], p.Real, p.Real))
+            if (InterlockedExchangeIfGreater(ref zorder[offset], p.Magnitude, p.Magnitude))
             {
                 data[offset] = c.B;
                 data[offset + 1] = c.G;
