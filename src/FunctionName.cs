@@ -44,5 +44,13 @@ namespace ComplexGraph
                 this.namePattern.Replace(
                     ArgumentPlaceholder,
                     innerFunction.namePattern));
+
+        /// <summary>
+        /// Returns the name of the function f <op> g, where f is the current
+        /// function name, and g is the given one.
+        /// </summary>
+        public FunctionName Compose(string operation, FunctionName rightFunction)
+            => new FunctionName(
+                $"{this.namePattern} {operation} {rightFunction.namePattern}");
     }
 }

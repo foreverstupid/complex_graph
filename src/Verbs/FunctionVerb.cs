@@ -4,14 +4,15 @@ using CommandLine;
 
 namespace ComplexGraph.Verbs
 {
-    [Verb("func", isDefault: true, HelpText = "Draws a single function")]
     class FunctionVerb : Verb
     {
         private const string Reference = "The description of the drawing function. " +
-            "You can use the following operations: +, -, *, /, (), ^, " +
+            "You can use the following operations: +, -, *, /, ^, (), " +
             "exp, ln, sin, cos, tan. Term 'z' is used for marking " +
-            "an argument. E.g.: 2 * (sin exp z^3 / tan ln z^z), " +
-            "(sin z)^2 + cos(z + z*z)";
+            "an argument. Complex constant can be written as <real> or " +
+            "<imaginary>i or {<real>,<imaginary>i}. E.g.: 1, 2i, {3,0.5i}. " +
+            "Examples of function descriptions: 2 * (sin exp z^3 / tan ln z^z), " +
+            "(sin z)^(2i) + cos(z * {3,0.1i} + z*z)";
 
         [Option('d', "description", HelpText = Reference, Required = true)]
         public string FuncDescription { get; set; } = "";
@@ -55,7 +56,7 @@ namespace ComplexGraph.Verbs
                 new Complex(Right, Top));
 
             var identity = Function.Identity;
-            var func = identity.RightCompose("exp(#)", Complex.Exp);
+            var func = FuncDescription.Parse();
 
             Draw(identity, area, plot.Canvas, plot.PreimageMask, tickStep);
             Draw(func, area, plot.Canvas, plot.ImageMask, tickStep, Quality, Quality);

@@ -63,7 +63,17 @@ namespace ComplexGraph
                 name.Compose(this.Name),
                 c => func(this.action(c)));
 
-         /// <summary>
+        /// <summary>
+        /// Gets a new function that is a right compositon of the given and
+        /// the current one. E.g. if the current function is f() and
+        /// the given one is g(), then it returns g(f).
+        /// </summary>
+        public Function RightCompose(Function func)
+            => new Function(
+                func.Name.Compose(this.Name),
+                c => func[this.action(c)]);
+
+        /// <summary>
         /// Gets a new function that is a left compositon of the given and
         /// the current one. E.g. if the current function is f() and
         /// the given one is g(), then it returns f(g).
@@ -84,5 +94,30 @@ namespace ComplexGraph
             => new Function(
                 this.Name.Compose(name),
                 c => this.action(func(c)));
+
+        /// <summary>
+        /// Gets a new function that is a left compositon of the given and
+        /// the current one. E.g. if the current function is f() and
+        /// the given one is g(), then it returns f(g).
+        /// </summary>
+        public Function LeftCompose(Function func)
+            => new Function(
+                this.Name.Compose(func.Name),
+                c => this.action(func[c]));
+
+        /// <summary>
+        /// Gets a new function that is a compositon of the given and
+        /// the current one as operands of the infix binary operation. E.g.
+        /// if the current function is f(),
+        /// the given one is g(), and the operation is * then it returns
+        /// f() * g().
+        /// </summary>
+        public Function Compose(
+            string operationName,
+            Func<Complex, Complex, Complex> operation,
+            Function func)
+            => new Function(
+                this.Name.Compose(operationName, func.Name),
+                c => operation(this[c], func[c]));
     }
 }
