@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Globalization;
+using System.Linq;
 using System;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -32,8 +33,8 @@ namespace ComplexGraph
                 if (args[0] == "--draw-pows" && args.Length > 3)
                 {
                     DrawPows(
-                        double.Parse(args[1]),
-                        double.Parse(args[2]),
+                        double.Parse(args[1], CultureInfo.InvariantCulture),
+                        double.Parse(args[2], CultureInfo.InvariantCulture),
                         int.Parse(args[3]));
 
                     return;
@@ -42,8 +43,8 @@ namespace ComplexGraph
                 if (args[0] == "--draw-exps" && args.Length > 3)
                 {
                     DrawExps(
-                        double.Parse(args[1]),
-                        double.Parse(args[2]),
+                        double.Parse(args[1], CultureInfo.InvariantCulture),
+                        double.Parse(args[2], CultureInfo.InvariantCulture),
                         int.Parse(args[3]));
 
                     return;
@@ -103,7 +104,7 @@ namespace ComplexGraph
                 var func = identity.RightCompose($"#^{p:0.##}", c => Complex.Pow(c, p));
                 using var plot = GetPlot();
                 Draw(identity, area, plot.Canvas, plot.PreimageMask, tickStep);
-                Draw(func, area, plot.Canvas, plot.ImageMask, tickStep, 4000, 4000);
+                Draw(func, area, plot.Canvas, plot.ImageMask, tickStep, 10000, 10000);
                 plot.Canvas.Save(Path.Combine(powsDir, $"pow{i}.png"));
             }
         }
