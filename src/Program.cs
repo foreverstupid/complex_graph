@@ -15,9 +15,10 @@ namespace ComplexGraph
         static void Main(string[] args)
         {
             Parser.Default
-                .ParseArguments<FunctionVerb, PowsVerb>(args)
+                .ParseArguments<FunctionVerb, PowsVerb, ExpsVerb>(args)
                 .WithParsed<FunctionVerb>(v => v.Run())
                 .WithParsed<PowsVerb>(v => v.Run())
+                .WithParsed<ExpsVerb>(v => v.Run())
                 .WithNotParsed(_ => OldVersion(args));
         }
 
@@ -28,16 +29,6 @@ namespace ComplexGraph
                 if (args[0] == "--draw-examples")
                 {
                     DrawExamples();
-                    return;
-                }
-
-                if (args[0] == "--draw-exps" && args.Length > 3)
-                {
-                    DrawExps(
-                        double.Parse(args[1], CultureInfo.InvariantCulture),
-                        double.Parse(args[2], CultureInfo.InvariantCulture),
-                        int.Parse(args[3]));
-
                     return;
                 }
             }
@@ -67,53 +58,6 @@ namespace ComplexGraph
                 Draw(identity, area, plot.Canvas, plot.PreimageMask, tickStep);
                 Draw(func, area, plot.Canvas, plot.ImageMask, tickStep, 16000, 16000);
                 plot.Canvas.Save(Path.Combine(exDir, $"{fileName}.png"));
-            }
-        }
-
-        private static void DrawExps(double start, double step, int count)
-        {
-            var sizes = Enumerable
-                .Range(0, count)
-                .Select(i => start + i * step);
-
-            var tickSteps = new[]
-            {
-                0.01, 0.02, 0.05, 0.075,
-                0.1,  0.2,  0.5,  0.75,
-                1,    2,    5,    7.5
-            };
-
-            string expDir = "exps";
-
-            if (Directory.Exists(expDir))
-            {
-                Directory.Delete(expDir, true);
-            }
-
-            Directory.CreateDirectory(expDir);
-            foreach (var (size, i) in sizes.Select((t, i) => (t, i)))
-            {
-                Console.WriteLine($"Drawing size [{i}]: {size}...");
-                var tickStep = tickSteps[^1];
-                for (int j = 1; j < tickSteps.Length; j++)
-                {
-                    if (tickSteps[j] > size / 7)
-                    {
-                        tickStep = tickSteps[j];
-                        break;
-                    }
-                }
-
-                var area = new Area(
-                    new Complex(-size, -size),
-                    new Complex(size, size));
-
-                var identity = Function.Identity;
-                var func = identity.RightCompose($"exp(#)", Complex.Exp);
-                using var plot = GetPlot();
-                Draw(identity, area, plot.Canvas, plot.PreimageMask, tickStep);
-                Draw(func, area, plot.Canvas, plot.ImageMask, tickStep, 8000, 8000);
-                plot.Canvas.Save(Path.Combine(expDir, $"exp{i}.png"));
             }
         }
 

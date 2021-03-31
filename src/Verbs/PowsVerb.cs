@@ -73,8 +73,8 @@ namespace ComplexGraph.Verbs
                 Draw(identity, area, plot.Canvas, plot.PreimageMask, TicksStep);
                 Draw(
                     func, area,
-                    plot.Canvas, plot.ImageMask,
-                    TicksStep, Quality, Quality,
+                    plot.Canvas, plot.ImageMask, TicksStep,
+                    Quality, Quality,
                     ztype);
 
                 plot.Canvas.Save(Path.Combine(Dir, $"pow{i}.png"));
