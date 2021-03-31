@@ -7,11 +7,12 @@ namespace ComplexGraph.Verbs
     [Verb("func", isDefault: true, HelpText = "Draws a complex-valued function")]
     class FunctionVerb : Verb
     {
-        private const string Reference = "The description of the drawing function. " +
+        private const string Reference = "The description of the drawing function.\n" +
             "You can use the following operations: +, -, *, /, ^, (), " +
-            "exp, ln, sin, cos, tan. Term 'z' is used for marking " +
-            "an argument. Complex constant can be written as <real> or " +
-            "<imaginary>i or {<real>,<imaginary>i}. E.g.: 1, 2i, {3,0.5i}. " +
+            "exp, ln, sin, cos, tan.\n" +
+            "Term 'z' is used for marking an argument.\n" +
+            "Complex constant can be written as <real> or " +
+            "<imaginary>i or {<real>,<imaginary>i}. E.g.: 1, 2i, {3,0.5i}.\n" +
             "Examples of function descriptions: 2 * (sin exp z^3 / tan ln z^z), " +
             "(sin z)^(2i) + cos(z * {3,0.1i} + z*z)";
 

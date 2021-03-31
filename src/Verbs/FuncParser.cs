@@ -55,25 +55,33 @@ namespace ComplexGraph.Verbs
         /// </summary>
         public static Function Parse(this string description)
         {
-            var parts = $"{description}"
-                .Split(
-                    ' ',
-                    StringSplitOptions.RemoveEmptyEntries |
-                    StringSplitOptions.TrimEntries)
-                .SelectMany(p => Regex.Split(
-                    p,
-                    @"(\{[^\}]*\})|([*()\^\/]|(?<!E)[\+\-])",
-                    RegexOptions.CultureInvariant |
-                    RegexOptions.IgnoreCase))
-                .Where(p => string.Empty != p)
-                .Append(string.Empty);
-
-            var ctxt = new Context(parts.GetEnumerator());
-            ctxt.Terms.MoveNext();
-
-            if (Expression(ctxt) && ctxt.Func is not null)
+            try
             {
-                return ctxt.Func;
+                var parts = $"{description}"
+                    .Split(
+                        ' ',
+                        StringSplitOptions.RemoveEmptyEntries |
+                        StringSplitOptions.TrimEntries)
+                    .SelectMany(p => Regex.Split(
+                        p,
+                        @"(\{[^\}]*\})|([*()\^\/]|(?<!E)[\+\-])",
+                        RegexOptions.CultureInvariant |
+                        RegexOptions.IgnoreCase))
+                    .Where(p => string.Empty != p)
+                    .Append(string.Empty);
+
+                var ctxt = new Context(parts.GetEnumerator());
+                ctxt.Terms.MoveNext();
+
+                if (Expression(ctxt) && ctxt.Func is not null)
+                {
+                    return ctxt.Func;
+                }
+            }
+            catch
+            {
+                throw new InvalidOperationException(
+                    "Inner code error has been occured. Cannot perform action");
             }
 
             throw new ArgumentException("Wrong func description");
