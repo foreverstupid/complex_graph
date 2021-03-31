@@ -12,7 +12,7 @@ namespace ComplexGraph.Verbs
         [Option(
             'o', "origin",
             HelpText = "Starting squared centered area size",
-            Default = 6.28)]
+            Default = 2 * Math.PI)]
         public double Origin { get; set; }
 
         [Option(
