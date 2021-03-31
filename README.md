@@ -11,7 +11,21 @@ real direction and lightness along the imaginary one). Then each point
 in image area will be marked by the corresponding color of its preimage.
 Thus one can realize how exactly the function changes the complex plane.
 
-The project is in a work stage...
+P.S. The project is in a work stage...
+
+# Build
+
+The project is written with using .NET 5.0. You can download dotnet
+[here](https://dotnet.microsoft.com/download). Then you can build the
+project with running
+> dotnet build -c Release ComplexGraph.csproj
+
+# Usage
+
+The program is disigned as CLI. After building use the following EXE file
+> src\bin\Release\net5.0\ComplexGraph.exe
+
+Run it with `--help` key to get the full reference of its functionality.
 
 # Examples
 
