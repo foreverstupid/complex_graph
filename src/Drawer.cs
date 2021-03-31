@@ -1,6 +1,3 @@
-using System.ComponentModel;
-using System.Reflection.Emit;
-using System.Security.AccessControl;
 using System;
 using System.Drawing;
 using System.Numerics;
@@ -61,11 +58,13 @@ namespace ComplexGraph
         /// Draws the given function action on the plot.
         /// </summary>
         /// <param name="func">Drawing function.</param>
-        /// <param name="plot">Image for drawing plot into.</param>
+        /// <param name="preimage">The preimage area of the function action.</param>
+        /// <param name="plot">Container for drawing plot into.</param>
         /// <param name="realGridCount">The count of grid along real axis.</param>
         /// <param name="imaginaryGridCount">The count of grid along imaginary axis</param>
         public static void DrawTo(
             this Function func,
+            Area preimage,
             Image plot,
             int? realGridCount = null,
             int? imaginaryGridCount = null)
@@ -74,16 +73,16 @@ namespace ComplexGraph
             int imaginaryGrid = imaginaryGridCount ?? plot.Height;
 
             // set steps for point color changes
-            double realStep = func.Preimage.Width / (realGrid + 1);
-            double imaginaryStep = func.Preimage.Height / (imaginaryGrid + 1);
+            double realStep = preimage.Width / (realGrid + 1);
+            double imaginaryStep = preimage.Height / (imaginaryGrid + 1);
             double huePerStep = HueRange.Length() / (realGrid + 1);
             double lightPerStep = LightnessRange.Length() / (imaginaryGrid + 1);
 
             // configure the mesh
-            double meshStepX = func.Preimage.Width / (MeshCount + 1);
-            double meshStepY = func.Preimage.Height / (MeshCount + 1);
+            double meshStepX = preimage.Width / (MeshCount + 1);
+            double meshStepY = preimage.Height / (MeshCount + 1);
             double meshThick =
-                Math.Max(func.Preimage.Width, func.Preimage.Height) *
+                Math.Max(preimage.Width, preimage.Height) *
                 MeshThick;
 
             Parallel.For(0, imaginaryGrid, (j, ctxt) =>
@@ -95,8 +94,8 @@ namespace ComplexGraph
                 };
 
                 var point = new Complex(
-                    func.Preimage.LeftBottom.Real,
-                    func.Preimage.LeftBottom.Imaginary + j * imaginaryStep);
+                    preimage.LeftBottom.Real,
+                    preimage.LeftBottom.Imaginary + j * imaginaryStep);
 
                 bool isImMesh = IsOnMesh(point.Imaginary, meshStepY, meshThick);
                 for (int i = 0; i < realGrid; i++)
@@ -104,7 +103,7 @@ namespace ComplexGraph
                     var value = func[point];
                     bool isInsideArea = TryGetPlotPosition(
                         value,
-                        func.Preimage,
+                        preimage,
                         plot.Width,
                         plot.Height,
                         out var pos);

@@ -4,12 +4,22 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Numerics;
+using CommandLine;
+using ComplexGraph.Verbs;
 
 namespace ComplexGraph
 {
     class Program
     {
         static void Main(string[] args)
+        {
+            Parser.Default
+                .ParseArguments<FunctionVerb>(args)
+                .WithParsed<FunctionVerb>(v => v.Run())
+                .WithNotParsed(_ => OldVersion(args));
+        }
+
+        private static void OldVersion(string[] args)
         {
             if (args.Length > 0)
             {
@@ -39,21 +49,6 @@ namespace ComplexGraph
                     return;
                 }
             }
-
-            using var plot = GetPlot();
-
-            double size = 6;
-            double tickStep = 2;
-            var area = new Area(
-                new Complex(-size, -size),
-                new Complex(size, size));
-
-            var identity = Function.Identity(area);
-            var func = identity.RightCompose("exp(#)", Complex.Exp);
-
-            Draw(identity, plot.Canvas, plot.PreimageMask, tickStep);
-            Draw(func, plot.Canvas, plot.ImageMask, tickStep, 16000, 16000);
-            plot.Canvas.Save("plot.png");
         }
 
         private static void DrawExamples()
@@ -61,7 +56,7 @@ namespace ComplexGraph
             double tickStep = 1;
             double d = Math.PI;
             var area = new Area(new Complex(-d, -d), new Complex(d, d));
-            var identity = Function.Identity(area);
+            var identity = Function.Identity;
 
             var funcs = new[]
             {
@@ -77,8 +72,8 @@ namespace ComplexGraph
             foreach (var (fileName, func) in funcs)
             {
                 using var plot = GetPlot();
-                Draw(identity, plot.Canvas, plot.PreimageMask, tickStep);
-                Draw(func, plot.Canvas, plot.ImageMask, tickStep, 16000, 16000);
+                Draw(identity, area, plot.Canvas, plot.PreimageMask, tickStep);
+                Draw(func, area, plot.Canvas, plot.ImageMask, tickStep, 16000, 16000);
                 plot.Canvas.Save(Path.Combine(exDir, $"{fileName}.png"));
             }
         }
@@ -90,7 +85,7 @@ namespace ComplexGraph
                 new Complex(-Math.PI, -Math.PI),
                 new Complex(Math.PI, Math.PI));
 
-            var identity = Function.Identity(area);
+            var identity = Function.Identity;
 
             var pows = Enumerable.Range(0, count)
                 .Select(i => start + step * i);
@@ -107,8 +102,8 @@ namespace ComplexGraph
                 Console.WriteLine($"Drawing power [{i}]: {p}...");
                 var func = identity.RightCompose($"#^{p:0.##}", c => Complex.Pow(c, p));
                 using var plot = GetPlot();
-                Draw(identity, plot.Canvas, plot.PreimageMask, tickStep);
-                Draw(func, plot.Canvas, plot.ImageMask, tickStep, 4000, 4000);
+                Draw(identity, area, plot.Canvas, plot.PreimageMask, tickStep);
+                Draw(func, area, plot.Canvas, plot.ImageMask, tickStep, 4000, 4000);
                 plot.Canvas.Save(Path.Combine(powsDir, $"pow{i}.png"));
             }
         }
@@ -151,17 +146,18 @@ namespace ComplexGraph
                     new Complex(-size, -size),
                     new Complex(size, size));
 
-                var identity = Function.Identity(area);
+                var identity = Function.Identity;
                 var func = identity.RightCompose($"exp(#)", Complex.Exp);
                 using var plot = GetPlot();
-                Draw(identity, plot.Canvas, plot.PreimageMask, tickStep);
-                Draw(func, plot.Canvas, plot.ImageMask, tickStep, 8000, 8000);
+                Draw(identity, area, plot.Canvas, plot.PreimageMask, tickStep);
+                Draw(func, area, plot.Canvas, plot.ImageMask, tickStep, 8000, 8000);
                 plot.Canvas.Save(Path.Combine(expDir, $"exp{i}.png"));
             }
         }
 
         private static void Draw(
             Function func,
+            Area preimage,
             Bitmap plot,
             Rectangle mask,
             double tickStep,
@@ -171,11 +167,11 @@ namespace ComplexGraph
             var scan = plot.LockBits(mask, ImageLockMode.ReadWrite, Image.Format);
             var holder = new Image(scan);
 
-            func.DrawTo(holder, xCount, yCount);
+            func.DrawTo(preimage, holder, xCount, yCount);
             holder.CopyToBitmapScan(scan);
             plot.UnlockBits(scan);
 
-            plot.DrawCoordinateAxes(mask, func.Preimage, tickStep, tickStep);
+            plot.DrawCoordinateAxes(mask, preimage, tickStep, tickStep);
             plot.DrawFuncName(mask, func.Name.Value);
         }
 

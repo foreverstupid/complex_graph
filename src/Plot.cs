@@ -3,6 +3,9 @@ using System.Drawing;
 
 namespace ComplexGraph
 {
+    /// <summary>
+    /// Help class containig info about creating picture.
+    /// </summary>
     public class Plot : IDisposable
     {
         public Plot(

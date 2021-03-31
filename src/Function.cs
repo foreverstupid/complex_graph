@@ -4,34 +4,32 @@ using System.Numerics;
 namespace ComplexGraph
 {
     /// <summary>
-    /// Represents complex-valued function and its action.
+    /// Represents complex-valued function and its name.
     /// </summary>
     public class Function
     {
+        private static readonly Lazy<Function> identity = new(() => new Function("#", c => c));
         private readonly Func<Complex, Complex> action;
 
         public Function(
             string namePattern,
-            Func<Complex, Complex> func,
-            Area preimage)
-            : this(new FunctionName(namePattern), func, preimage)
+            Func<Complex, Complex> func)
+            : this(new FunctionName(namePattern), func)
         {
         }
 
         public Function(
             FunctionName name,
-            Func<Complex, Complex> func,
-            Area preimage)
+            Func<Complex, Complex> func)
         {
             Name = name;
-            Preimage = preimage;
             this.action = func;
         }
 
         /// <summary>
-        /// Gets the complex plane area on that the function acts.
+        /// Creates and returns identity function over the given area.
         /// </summary>
-        public Area Preimage { get; }
+        public static Function Identity => identity.Value;
 
         /// <summary>
         /// Gets the name of the function.
@@ -42,12 +40,6 @@ namespace ComplexGraph
         /// Gets the image of the given point after func action.
         /// </summary>
         public Complex this[Complex value] => action(value);
-
-        /// <summary>
-        /// Creates and returns identity function over the given area.
-        /// </summary>
-        public static Function Identity(Area preimage)
-            => new Function(new FunctionName(), c => c, preimage);
 
         /// <summary>
         /// Gets a new function that is a right compositon of the given and
@@ -69,8 +61,7 @@ namespace ComplexGraph
             Func<Complex, Complex> func)
             => new Function(
                 name.Compose(this.Name),
-                c => func(this.action(c)),
-                this.Preimage);
+                c => func(this.action(c)));
 
          /// <summary>
         /// Gets a new function that is a left compositon of the given and
@@ -92,7 +83,6 @@ namespace ComplexGraph
             Func<Complex, Complex> func)
             => new Function(
                 this.Name.Compose(name),
-                c => this.action(func(c)),
-                this.Preimage);
+                c => this.action(func(c)));
     }
 }
