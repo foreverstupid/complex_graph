@@ -12,13 +12,13 @@ namespace ComplexGraph.Verbs
     {
         [Option(
             'w', "width",
-            HelpText = "The width of the preimage in the resulting plot picture",
+            HelpText = "The width of the preimage in the resulting plot picture in pixels",
             Default = 1000)]
         public int Width { get; set; }
 
         [Option(
             'h', "height",
-            HelpText = "The height of the preimage in the resulting plot picture",
+            HelpText = "The height of the preimage in the resulting plot picture in pixels",
             Default = 1000)]
         public int Height { get; set; }
 
@@ -44,10 +44,11 @@ namespace ComplexGraph.Verbs
             Rectangle mask,
             double tickStep,
             int? xCount = null,
-            int? yCount = null)
+            int? yCount = null,
+            Image.ZorderType zorder = Image.ZorderType.Magnitude)
         {
             var scan = plot.LockBits(mask, ImageLockMode.ReadWrite, Image.Format);
-            var holder = new Image(scan);
+            var holder = new Image(scan, zorder);
 
             func.DrawTo(area, holder, xCount, yCount);
             holder.CopyToBitmapScan(scan);

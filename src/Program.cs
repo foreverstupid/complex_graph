@@ -15,8 +15,9 @@ namespace ComplexGraph
         static void Main(string[] args)
         {
             Parser.Default
-                .ParseArguments<FunctionVerb>(args)
+                .ParseArguments<FunctionVerb, PowsVerb>(args)
                 .WithParsed<FunctionVerb>(v => v.Run())
+                .WithParsed<PowsVerb>(v => v.Run())
                 .WithNotParsed(_ => OldVersion(args));
         }
 
@@ -27,16 +28,6 @@ namespace ComplexGraph
                 if (args[0] == "--draw-examples")
                 {
                     DrawExamples();
-                    return;
-                }
-
-                if (args[0] == "--draw-pows" && args.Length > 3)
-                {
-                    DrawPows(
-                        double.Parse(args[1], CultureInfo.InvariantCulture),
-                        double.Parse(args[2], CultureInfo.InvariantCulture),
-                        int.Parse(args[3]));
-
                     return;
                 }
 
@@ -76,36 +67,6 @@ namespace ComplexGraph
                 Draw(identity, area, plot.Canvas, plot.PreimageMask, tickStep);
                 Draw(func, area, plot.Canvas, plot.ImageMask, tickStep, 16000, 16000);
                 plot.Canvas.Save(Path.Combine(exDir, $"{fileName}.png"));
-            }
-        }
-
-        private static void DrawPows(double start, double step, int count)
-        {
-            double tickStep = 0.5;
-            var area = new Area(
-                new Complex(-Math.PI, -Math.PI),
-                new Complex(Math.PI, Math.PI));
-
-            var identity = Function.Identity;
-
-            var pows = Enumerable.Range(0, count)
-                .Select(i => start + step * i);
-
-            string powsDir = "pows";
-            if (Directory.Exists(powsDir))
-            {
-                Directory.Delete(powsDir, true);
-            }
-
-            Directory.CreateDirectory(powsDir);
-            foreach (var (p, i) in pows.Select((t, i) => (t, i)))
-            {
-                Console.WriteLine($"Drawing power [{i}]: {p}...");
-                var func = identity.RightCompose($"#^{p:0.##}", c => Complex.Pow(c, p));
-                using var plot = GetPlot();
-                Draw(identity, area, plot.Canvas, plot.PreimageMask, tickStep);
-                Draw(func, area, plot.Canvas, plot.ImageMask, tickStep, 10000, 10000);
-                plot.Canvas.Save(Path.Combine(powsDir, $"pow{i}.png"));
             }
         }
 

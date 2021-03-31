@@ -1,11 +1,9 @@
 using System;
 using System.Threading;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Numerics;
-using System.Collections.Concurrent;
 
 namespace ComplexGraph
 {
@@ -20,16 +18,28 @@ namespace ComplexGraph
 
         private readonly byte[] data;
         private readonly double[] zorder;
+        private readonly Func<Complex, double> getZorder;
 
-        public Image(BitmapData scan)
+        public Image(BitmapData scan, ZorderType zorderType = ZorderType.Magnitude)
         {
             Width = scan.Width;
             Height = scan.Height;
+
             this.data = new byte[Width * Height * Depth];
             this.zorder = new double[this.data.Length];
+            this.getZorder = zorderType switch
+            {
+                ZorderType.Real => c => c.Real,
+                ZorderType.Imaginary => c => c.Imaginary,
+                ZorderType.Magnitude => c => c.Magnitude,
+                _ => throw new ArgumentException("Unhandled z-order type"),
+            };
+
             Array.Fill(zorder, double.NegativeInfinity);
             Marshal.Copy(scan.Scan0, this.data, 0, this.data.Length);
         }
+
+        public enum ZorderType { Real, Magnitude, Imaginary }
 
         public int Width { get; }
 
@@ -48,7 +58,8 @@ namespace ComplexGraph
         public void SetPixel(int xPos, int yPos, Color c, Complex p)
         {
             int offset = (yPos * Width + xPos) * Depth;
-            if (InterlockedExchangeIfGreater(ref zorder[offset], p.Magnitude, p.Magnitude))
+            double z = getZorder(p);
+            if (InterlockedExchangeIfGreater(ref zorder[offset], z, z))
             {
                 data[offset] = c.B;
                 data[offset + 1] = c.G;

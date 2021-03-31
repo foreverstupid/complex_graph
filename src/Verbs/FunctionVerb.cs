@@ -4,6 +4,7 @@ using CommandLine;
 
 namespace ComplexGraph.Verbs
 {
+    [Verb("func", isDefault: true, HelpText = "Draws a complex-valued function")]
     class FunctionVerb : Verb
     {
         private const string Reference = "The description of the drawing function. " +
