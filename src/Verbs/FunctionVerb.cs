@@ -8,11 +8,13 @@ namespace ComplexGraph.Verbs
     class FunctionVerb : Verb
     {
         private const string Reference = "The description of the drawing function.\n" +
-            "You can use the following operations: +, -, *, /, ^, (), " +
+            "You can use the following operations: +, -, *, /, ^, " +
             "exp, ln, sin, cos, tan.\n" +
             "Term 'z' is used for marking an argument.\n" +
             "Complex constant can be written as <real> or " +
             "<imaginary>i or {<real>,<imaginary>i}. E.g.: 1, 2i, {3,0.5i}.\n" +
+            "Unary operations have more priority. For example ln z^2 actually " +
+            "means (ln z)^2. To change priority use parantheses, e.g. ln (z^2)\n" +
             "Examples of function descriptions: 2 * (sin exp z^3 / tan ln z^z), " +
             "(sin z)^(2i) + cos(z * {3,0.1i} + z*z)";
 
