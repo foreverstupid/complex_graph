@@ -11,8 +11,6 @@ real direction and lightness along the imaginary one). Then each point
 in image area will be marked by the corresponding color of its preimage.
 Thus one can realize how exactly the function changes the complex plane.
 
-P.S. The project is in a work stage...
-
 # Build
 
 The project is written with using .NET 5.0. You can download dotnet
