@@ -186,16 +186,16 @@ namespace ComplexGraph.Verbs
         /// </summary>
         private static bool FactorPart(Context ctxt)
         {
-            string? unaryOperation = null;
-            if (Funcs.ContainsKey(ctxt.Terms.Current))
+            var unaryOperations = new Stack<string>();
+            while (Funcs.ContainsKey(ctxt.Terms.Current))
             {
-                unaryOperation = ctxt.Terms.Current;
+                unaryOperations.Push(ctxt.Terms.Current);
                 ctxt.Terms.MoveNext();
             }
 
             if (!Atom(ctxt))
             {
-                if (unaryOperation is not null)
+                if (unaryOperations.Count > 0)
                 {
                     throw new ArgumentException(
                         "Expected operand of unary operation");
@@ -204,9 +204,9 @@ namespace ComplexGraph.Verbs
                 return false;
             }
 
-            if (unaryOperation is not null)
+            while (unaryOperations.Count > 0)
             {
-                PerformUnaryOperation(ctxt, unaryOperation);
+                PerformUnaryOperation(ctxt, unaryOperations.Pop());
             }
 
             return true;
@@ -214,7 +214,7 @@ namespace ComplexGraph.Verbs
 
         /// <summary>
         /// Parses a single expresion operand that can be argument mark,
-        /// number, parantheses, or factor part.
+        /// number, or parantheses.
         /// </summary>
         private static bool Atom(Context ctxt)
         {
@@ -232,7 +232,7 @@ namespace ComplexGraph.Verbs
                 return true;
             }
 
-            return Parantheses(ctxt) || FactorPart(ctxt);
+            return Parantheses(ctxt);
         }
 
         /// <summary>
@@ -286,7 +286,7 @@ namespace ComplexGraph.Verbs
             else if (num is not null && ctxt.Func is not null)
             {
                 var nStr = ComplexNumberParser.ToString(num.Value);
-                ctxt.Func = ctxt.Func.LeftCompose(
+                ctxt.Func = ctxt.Func.RightCompose(
                     $"({nStr}{operationName}#)",
                     c => operation(num.Value, c));
             }

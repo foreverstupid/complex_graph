@@ -45,7 +45,7 @@ namespace ComplexGraph.Verbs
                 var reStr = parts[0];
                 var imStr = parts[1];
                 if (!TryGetReal(reStr, out re) ||
-                    !TryGetReal(imStr, out im))
+                    !TryGetImaginary(imStr, out im))
                 {
                     return false;
                 }

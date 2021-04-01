@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.Globalization;
+using System;
 using CommandLine;
 using ComplexGraph.Verbs;
 
@@ -10,7 +11,16 @@ namespace ComplexGraph
         {
             try
             {
-                Parser.Default
+                var parser = new Parser(
+                    c =>
+                    {
+                        c.HelpWriter = Console.Out;
+                        c.EnableDashDash = true;
+                        c.MaximumDisplayWidth = 80;
+                        c.ParsingCulture = CultureInfo.InvariantCulture;
+                    });
+
+                parser
                     .ParseArguments<FunctionVerb, PowsVerb, ExpsVerb, ExpamplesVerb>(args)
                     .WithParsed<FunctionVerb>(v => v.Run())
                     .WithParsed<PowsVerb>(v => v.Run())
@@ -19,26 +29,31 @@ namespace ComplexGraph
             }
             catch (Exception e)
             {
-                var c = Console.ForegroundColor;
-                try
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                }
-                catch
-                {
-                    // some terminals can throw on changing color
-                }
+                HandleUncaughtError(e);
+            }
+        }
 
-                Console.WriteLine(e.Message);
+        private static void HandleUncaughtError(Exception e)
+        {
+            var c = Console.ForegroundColor;
+            try
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+            }
+            catch
+            {
+                // some terminals can throw on changing color
+            }
 
-                try
-                {
-                    Console.ForegroundColor = c;
-                }
-                catch
-                {
-                    // some terminals can throw on changing color
-                }
+            Console.WriteLine(e.Message);
+
+            try
+            {
+                Console.ForegroundColor = c;
+            }
+            catch
+            {
+                // some terminals can throw on changing color
             }
         }
     }
