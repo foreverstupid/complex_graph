@@ -17,37 +17,37 @@ namespace ComplexGraph.Verbs
     /// </summary>
     static class FuncParser
     {
-        private const string ArgTerm = "z";
+        private const string Arg = "z";
 
-        private const string AddTerm = "+";
-        private const string SubTerm = "-";
-        private const string MulTerm = "*";
-        private const string DivTerm = "/";
-        private const string PowTerm = "^";
+        private const string Add = "+";
+        private const string Sub = "-";
+        private const string Mul = "*";
+        private const string Div = "/";
+        private const string Pow = "^";
 
-        private const string ExpTerm = "exp";
-        private const string LogTerm = "ln";
-        private const string SinTerm = "sin";
-        private const string CosTerm = "cos";
-        private const string TanTerm = "tan";
+        private const string Exp = "exp";
+        private const string Log = "ln";
+        private const string Sin = "sin";
+        private const string Cos = "cos";
+        private const string Tan = "tan";
 
         private static readonly Dictionary<string, Function> Funcs = new()
         {
-            [SubTerm] = new Function("-#", Complex.Negate),
-            [ExpTerm] = new Function("exp(#)", Complex.Exp),
-            [LogTerm] = new Function("ln(#)", Complex.Log),
-            [SinTerm] = new Function("sin(#)", Complex.Sin),
-            [CosTerm] = new Function("cos(#)", Complex.Cos),
-            [TanTerm] = new Function("tan(#)", Complex.Tan),
+            [Sub] = new Function("-#", Complex.Negate),
+            [Exp] = new Function("exp #", Complex.Exp),
+            [Log] = new Function("ln #", Complex.Log),
+            [Sin] = new Function("sin #", Complex.Sin),
+            [Cos] = new Function("cos #", Complex.Cos),
+            [Tan] = new Function("tan #", Complex.Tan),
         };
 
         private static readonly Dictionary<string, BinFunc> BinaryOperations = new()
         {
-            [AddTerm] = Complex.Add,
-            [SubTerm] = Complex.Subtract,
-            [MulTerm] = Complex.Multiply,
-            [DivTerm] = Complex.Divide,
-            [PowTerm] = Complex.Pow,
+            [Add] = Complex.Add,
+            [Sub] = Complex.Subtract,
+            [Mul] = Complex.Multiply,
+            [Div] = Complex.Divide,
+            [Pow] = Complex.Pow,
         };
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace ComplexGraph.Verbs
                         RegexOptions.CultureInvariant |
                         RegexOptions.IgnoreCase))
                     .Where(p => string.Empty != p)
-                    .Append(string.Empty);
+                    .Append(string.Empty);  // for proper handling terms end
 
                 var ctxt = new Context(parts.GetEnumerator());
                 ctxt.Terms.MoveNext();
@@ -87,18 +87,115 @@ namespace ComplexGraph.Verbs
             throw new ArgumentException("Wrong func description");
         }
 
+        /// <summary>
+        /// Parses one expression that is a term or sum or subtract of
+        /// two terms.
+        /// </summary>
         private static bool Expression(Context ctxt)
         {
-            string? unaryTerm = null;
+            if (!Term(ctxt))
+            {
+                return false;
+            }
+
+            var operationName = ctxt.Terms.Current;
+            if (operationName != Add &&
+                operationName != Sub)
+            {
+                return true;    // it's one adding term expression
+            }
+
+            ctxt.Terms.MoveNext();
+            var operation = BinaryOperations[operationName];
+            var leftOperand = ctxt.Flush();
+
+            if (!Term(ctxt))
+            {
+                throw new ArgumentException(
+                    "Expected right operand of add/subtract");
+            }
+
+            PerformBinaryOperation(ctxt, leftOperand, operationName, operation);
+            return true;
+        }
+
+        /// <summary>
+        /// Parses one term that is a factor or multiplying or division of
+        /// two factors.
+        /// </summary>
+        private static bool Term(Context ctxt)
+        {
+            if (!Factor(ctxt))
+            {
+                return false;
+            }
+
+            var operationName = ctxt.Terms.Current;
+            if (operationName != Mul &&
+                operationName != Div)
+            {
+                return true;    // it's simple factor
+            }
+
+            ctxt.Terms.MoveNext();
+            var operation = BinaryOperations[operationName];
+            var leftOperand = ctxt.Flush();
+
+            if (!Factor(ctxt))
+            {
+                throw new ArgumentException(
+                    "Expected right operand of multiply/divide");
+            }
+
+            PerformBinaryOperation(ctxt, leftOperand, operationName, operation);
+            return true;
+        }
+
+        /// <summary>
+        /// Parses one factor that is a single factor part or power expression.
+        /// </summary>
+        private static bool Factor(Context ctxt)
+        {
+            if (!FactorPart(ctxt))
+            {
+                return false;
+            }
+
+            var operationName = ctxt.Terms.Current;
+            if (operationName != Pow)
+            {
+                return true;    // it's not a power
+            }
+
+            ctxt.Terms.MoveNext();
+            var operation = BinaryOperations[operationName];
+            var leftOperand = ctxt.Flush();
+
+            if (!FactorPart(ctxt))
+            {
+                throw new ArgumentException(
+                    "Expected right operand of power operation");
+            }
+
+            PerformBinaryOperation(ctxt, leftOperand, operationName, operation);
+            return true;
+        }
+
+        /// <summary>
+        /// Parses unary operation aplying to some atom.
+        /// </summary>
+        private static bool FactorPart(Context ctxt)
+        {
+            string? unaryOperation = null;
             if (Funcs.ContainsKey(ctxt.Terms.Current))
             {
-                unaryTerm = ctxt.Terms.Current;
+                unaryOperation = ctxt.Terms.Current;
                 ctxt.Terms.MoveNext();
             }
 
-            if (!Operand(ctxt))
+            if (!Atom(ctxt))
             {
-                if (unaryTerm is not null)
+                if (unaryOperation is not null)
                 {
                     throw new ArgumentException(
                         "Expected operand of unary operation");
@@ -107,34 +204,40 @@ namespace ComplexGraph.Verbs
                 return false;
             }
 
-            if (unaryTerm is not null)
+            if (unaryOperation is not null)
             {
-                if (ctxt.Number is not null)
-                {
-                    ctxt.Number = Funcs[unaryTerm][ctxt.Number.Value];
-                }
-                else if (ctxt.Func is not null)
-                {
-                    ctxt.Func = ctxt.Func.RightCompose(Funcs[unaryTerm]);
-                }
-                else
-                {
-                    throw new ArgumentException("Invalid expression");
-                }
+                PerformUnaryOperation(ctxt, unaryOperation);
             }
 
-            BinaryTail(ctxt);
             return true;
         }
 
-        private static bool Operand(Context ctxt)
+        /// <summary>
+        /// Parses a single expresion operand that can be argument mark,
+        /// number, parantheses, or factor part.
+        /// </summary>
+        private static bool Atom(Context ctxt)
         {
-            return Parantheses(ctxt) ||
-                   Argument(ctxt) ||
-                   Number(ctxt) ||
-                   Expression(ctxt);
+            if (ctxt.Terms.Current == Arg)
+            {
+                ctxt.Func = Function.Identity;
+                ctxt.Terms.MoveNext();
+                return true;
+            }
+
+            if (ComplexNumberParser.TryParse(ctxt.Terms.Current, out var num))
+            {
+                ctxt.Number = num;
+                ctxt.Terms.MoveNext();
+                return true;
+            }
+
+            return Parantheses(ctxt) || FactorPart(ctxt);
         }
 
+        /// <summary>
+        /// Parses expression in parantheses.
+        /// </summary>
         private static bool Parantheses(Context ctxt)
         {
             if (ctxt.Terms.Current == "(")
@@ -142,7 +245,8 @@ namespace ComplexGraph.Verbs
                 ctxt.Terms.MoveNext();
                 if (!Expression(ctxt))
                 {
-                    return false;
+                    throw new ArgumentException(
+                        "Expected expression in parantheses");
                 }
 
                 if (ctxt.Terms.Current != ")")
@@ -157,96 +261,100 @@ namespace ComplexGraph.Verbs
             return false;
         }
 
-        private static bool Argument(Context ctxt)
+        /// <summary>
+        /// Applies some binary operation, storing result in the context.
+        /// </summary>
+        private static void PerformBinaryOperation(
+            Context ctxt,
+            (Function?, Complex?) leftOperand,
+            string operationName,
+            BinFunc operation)
         {
-            if (ctxt.Terms.Current == ArgTerm)
-            {
-                ctxt.Func = Function.Identity;
-                ctxt.Terms.MoveNext();
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        private static bool BinaryTail(Context ctxt)
-        {
-            if (!BinaryOperations.ContainsKey(ctxt.Terms.Current))
-            {
-                return false;
-            }
-
-            var op = ctxt.Terms.Current;
-            var func = ctxt.Func;
-            var num = ctxt.Number;
-            ctxt.Func = null;
-            ctxt.Number = null;
-            ctxt.Terms.MoveNext();
-
-            if (!Operand(ctxt))
-            {
-                throw new ArgumentException(
-                    "Expected second operand of binary operation");
-            }
-
+            var (func, num) = leftOperand;
             if (func is not null && ctxt.Func is not null)
             {
-                ctxt.Func = func.Compose(op, BinaryOperations[op], ctxt.Func);
+                ctxt.Func = func.Compose(operationName, operation, ctxt.Func);
             }
             else if (func is not null && ctxt.Number is not null)
             {
                 var num2 = ctxt.Number.Value;
                 var nStr = ComplexNumberParser.ToString(num2);
-                ctxt.Func = func.LeftCompose(
-                    $"#{op}{nStr}",
-                    c => BinaryOperations[op](c, num2));
+                ctxt.Func = func.RightCompose(
+                    $"(#{operationName}{nStr})",
+                    c => operation(c, num2));
             }
             else if (num is not null && ctxt.Func is not null)
             {
                 var nStr = ComplexNumberParser.ToString(num.Value);
-                ctxt.Func = ctxt.Func.RightCompose(
-                    $"{nStr}{op}#",
-                    c => BinaryOperations[op](num.Value, c));
+                ctxt.Func = ctxt.Func.LeftCompose(
+                    $"({nStr}{operationName}#)",
+                    c => operation(num.Value, c));
             }
             else if (num is not null && ctxt.Number is not null)
             {
-                ctxt.Number = BinaryOperations[op](
-                    num.Value,
-                    ctxt.Number.Value);
+                ctxt.Number = operation(num.Value, ctxt.Number.Value);
             }
             else
             {
                 throw new ArgumentException(
                     "Invalid operands of binary operation");
             }
-
-            return true;
         }
 
-        private static bool Number(Context ctxt)
+        /// <summary>
+        /// Applies some unary operation, storing the result in the context.
+        /// </summary>
+        private static void PerformUnaryOperation(
+            Context ctxt,
+            string unaryOperation)
         {
-            if (!ComplexNumberParser.TryParse(ctxt.Terms.Current, out var num))
+            if (ctxt.Func is not null)
             {
-                return false;
+                ctxt.Func = ctxt.Func.RightCompose(Funcs[unaryOperation]);
             }
-
-            ctxt.Number = num;
-            ctxt.Terms.MoveNext();
-            return true;
+            else if (ctxt.Number is not null)
+            {
+                ctxt.Number = Funcs[unaryOperation][ctxt.Number.Value];
+            }
+            else
+            {
+                throw new ArgumentException("Invalid unary operation");
+            }
         }
 
+        /// <summary>
+        /// Parsing context.
+        /// </summary>
         private class Context
         {
             public Context(IEnumerator<string> terms)
                 => Terms = terms;
 
+            /// <summary>
+            /// Enumerator of all description atomic terms.
+            /// </summary>
             public IEnumerator<string> Terms { get; }
 
+            /// <summary>
+            /// Holder for accumulating function.
+            /// </summary>
             public Function? Func { get; set; } = null;
 
+            /// <summary>
+            /// Holder for accumulating number.
+            /// </summary>
             public Complex? Number { get; set; } = null;
+
+            /// <summary>
+            /// Flushes holders, reseting them and returning their last values.
+            /// </summary>
+            public (Function?, Complex?) Flush()
+            {
+                var res = (Func, Number);
+                this.Func = null;
+                this.Number = null;
+                return res;
+            }
         }
     }
 }

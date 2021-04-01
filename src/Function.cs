@@ -108,9 +108,8 @@ namespace ComplexGraph
         /// <summary>
         /// Gets a new function that is a compositon of the given and
         /// the current one as operands of the infix binary operation. E.g.
-        /// if the current function is f(),
-        /// the given one is g(), and the operation is * then it returns
-        /// f() * g().
+        /// if the current function is f(), the given one is g(), and the
+        /// operation is * then it returns f() * g().
         /// </summary>
         public Function Compose(
             string operationName,

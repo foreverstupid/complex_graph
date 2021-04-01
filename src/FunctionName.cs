@@ -47,7 +47,7 @@ namespace ComplexGraph
 
         /// <summary>
         /// Returns the name of the function f <op> g, where f is the current
-        /// function name, and g is the given one.
+        /// function name, g is the given one, and <op> is a binary operation.
         /// </summary>
         public FunctionName Compose(string operation, FunctionName rightFunction)
             => new FunctionName(

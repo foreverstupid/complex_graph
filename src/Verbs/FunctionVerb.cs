@@ -44,6 +44,12 @@ namespace ComplexGraph.Verbs
         public double Top { get; set; }
 
         [Option(
+            "tick-step",
+            HelpText = "Tick step along axes. If not specified, " +
+                       "then it is chosen automatically")]
+        public double? TicksStep { get; set; }
+
+        [Option(
             'f', "file-name",
             HelpText = "The name of the creating plot file",
             Default = "plot.png")]
@@ -52,11 +58,11 @@ namespace ComplexGraph.Verbs
         public override void Run()
         {
             using var plot = GetPlot();
-            double tickStep = GetTicksStep();
             var area = new Area(
                 new Complex(Left, Bottom),
                 new Complex(Right, Top));
 
+            double tickStep = TicksStep ?? GetTicksStep(area);
             var identity = Function.Identity;
             var func = FuncDescription.Parse();
 
@@ -65,9 +71,17 @@ namespace ComplexGraph.Verbs
             plot.Canvas.Save(FileName);
         }
 
-        private double GetTicksStep()
+        private static double GetTicksStep(Area area)
         {
-            return 1.0;
+            var size = Math.Max(area.Width, area.Height);
+            var lg = Math.Round(Math.Log10(size));
+            var step = Math.Pow(10, lg);
+            while (step > size / 5)
+            {
+                step /= 5;
+            }
+
+            return step;
         }
     }
 }
